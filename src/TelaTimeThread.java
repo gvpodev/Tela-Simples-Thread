@@ -17,53 +17,23 @@ import javax.swing.JTextField;
 public class TelaTimeThread extends JDialog {
 
 	private JPanel jPanel1 = new JPanel(new GridBagLayout()); // Painel de Componentes
+	
 	// Campo 1
-	private JLabel hourDescription = new JLabel("Time Thread 1");
-	private JTextField showTime = new JTextField();
+	private JLabel nameField = new JLabel("Nome");
+	private JTextField showName = new JTextField();
 
 	// Campo 2
-	private JLabel hourDescription2 = new JLabel("Time Thread 2");
-	private JTextField showTime2 = new JTextField();
+	private JLabel emailField = new JLabel("E-mail");
+	private JTextField showEmail = new JTextField();
 
 	// Botões
-	private JButton jButtonStart = new JButton("Start");
+	private JButton jButtonAdd = new JButton("Add Lista");
 	private JButton jButtonStop = new JButton("Stop");
-
-	private Runnable thread1 = new Runnable() {
-
-		@Override
-		public void run() {
-			while (true) {
-				showTime.setText(new SimpleDateFormat("dd/MM/yyyy hh:mm.ss").format(Calendar.getInstance().getTime()));
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	};
-
-	private Runnable thread2 = new Runnable() {
-		@Override
-		public void run() {
-			while (true) {
-				showTime2.setText(new SimpleDateFormat("dd/MM/yyyy hh:mm.ss").format(Calendar.getInstance().getTime()));
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	};
 	
-	//Objetos Thread
-	private Thread thread1time;
-	private Thread thread2time;
-
+	private ImplementacaoFilaThread fila = new ImplementacaoFilaThread();
+	
 	public TelaTimeThread() {
-		// Parte do cógido respondável pela aparencia e tamanho da tela.
+		// Parte do cógido responsável pela aparencia e tamanho da tela.
 		setTitle("Minha tela de time com Thread.");
 		setSize(new Dimension(240, 240));
 		setLocationRelativeTo(null);
@@ -78,90 +48,64 @@ public class TelaTimeThread extends JDialog {
 		gridBagConstraints.insets = new Insets(5, 10, 5, 5); // Distancia entre os componentes dentro do painel
 		gridBagConstraints.anchor = GridBagConstraints.WEST; // Disposição dos componentes dentro da tela
 
-		hourDescription.setPreferredSize(new Dimension(200, 25));
-		jPanel1.add(hourDescription, gridBagConstraints); // Adiciona o campo ao JPanel
+		nameField.setPreferredSize(new Dimension(200, 25));
+		jPanel1.add(nameField, gridBagConstraints); // Adiciona o campo ao JPanel
 
-		showTime.setPreferredSize(new Dimension(200, 25));
+		showName.setPreferredSize(new Dimension(200, 25));
 		gridBagConstraints.gridy++; // Desce o componente no eixo y
-		showTime.setEditable(false); // Campo de texto sem edição, apenas visualização
-		jPanel1.add(showTime, gridBagConstraints);
+		jPanel1.add(showName, gridBagConstraints);
 
-		hourDescription2.setPreferredSize(new Dimension(200, 25));
+		emailField.setPreferredSize(new Dimension(200, 25));
 		gridBagConstraints.gridy++;
-		jPanel1.add(hourDescription2, gridBagConstraints);
+		jPanel1.add(emailField, gridBagConstraints);
 
-		showTime2.setPreferredSize(new Dimension(200, 25));
+		showEmail.setPreferredSize(new Dimension(200, 25));
 		gridBagConstraints.gridy++;
-		showTime2.setEditable(false);
-		jPanel1.add(showTime2, gridBagConstraints);
+		jPanel1.add(showEmail, gridBagConstraints);
 
 		gridBagConstraints.gridwidth = 1; // Cada componente passa a ocupar 1 espaço na horizontal
 
-		jButtonStart.setPreferredSize(new Dimension(92, 25));
+		jButtonAdd.setPreferredSize(new Dimension(92, 25));
 		gridBagConstraints.gridy++;
-		jPanel1.add(jButtonStart, gridBagConstraints);
+		jPanel1.add(jButtonAdd, gridBagConstraints);
 
 		jButtonStop.setPreferredSize(new Dimension(92, 25));
 		gridBagConstraints.gridx++;
 		jPanel1.add(jButtonStop, gridBagConstraints);
 		
-		//Ações dos botões Start e Stop de ambas as Threads.
-		
-		//Thread 1
-		jButtonStart.addActionListener(new ActionListener() {
+		jButtonAdd.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) { // Executa o click no Botão
-
-				thread1time = new Thread(thread1);
-				thread1time.start();
 				
-				jButtonStart.setEnabled(false);
-				jButtonStop.setEnabled(true);
-
+				if(fila == null) {
+					fila = new ImplementacaoFilaThread();
+					fila.start();
+				}
+				
+				//Simulacao de 100 envios em massa
+				for(int i = 0; i < 100; i++) {
+					ObjetoFilaThread filaThread = new ObjetoFilaThread();
+					filaThread.setName(showName.getText());
+					filaThread.setEmail(showEmail.getText() + " - " + i);
+					
+					fila.add(filaThread);
+				}
 			}
 		});
-
+		
 		jButtonStop.addActionListener(new ActionListener() {
-
+			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				thread1time.stop();
-				
-				jButtonStart.setEnabled(true);
-				jButtonStop.setEnabled(false);
+				fila.stop();
+				fila = null;
 			}
 		});
 		
-		//Thread 2
-		jButtonStart.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				thread2time = new Thread(thread2);
-				thread2time.start();
-				
-				jButtonStart.setEnabled(false);
-				jButtonStop.setEnabled(true);
-
-			}
-		});
-
-		jButtonStop.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				thread2time.stop();
-				
-				jButtonStart.setEnabled(true);
-				jButtonStop.setEnabled(false);
-			}
-		});
-		
-		jButtonStop.setEnabled(false);
-		
+		fila.start();
 		add(jPanel1, BorderLayout.WEST); // Posiciona os campos no lado esquerdo do painel
-		// Torna a tela visível. Sempre será o último a ser executado
+		// Torna a tela visível. Sempre será o último a ser executado 
 		setVisible(true);
 
 	}
